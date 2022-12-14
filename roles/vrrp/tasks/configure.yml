@@ -1,0 +1,43 @@
+---
+- name: update pacemaker user password
+  ansible.builtin.user:
+    name: hacluster
+    password: "{{ pacemaker_password | password_hash('sha512') }}"
+
+- name: Set up Cluster
+  block:
+    - name: Authorize in servers
+      ansible.builtin.command: "pcs cluster auth {{ groups['vrrp-cluster'] | join(' ') }} -u hacluster -p {{ pacemaker_password }}"
+
+    - name: Create cluster
+      ansible.builtin.command: "pcs cluster setup --name vrrp_cluster {{ groups['vrrp-cluster'] | join(' ') }}"
+
+    - name: Start cluster
+      ansible.builtin.command: "pcs cluster start --all"
+
+    - name: Enable cluster
+      ansible.builtin.command: "pcs cluster start --all"
+
+    - name: Disable STONITH
+      ansible.builtin.command: "pcs property set stonith-enabled=false"
+
+    - name: Set ignore Quorum
+      ansible.builtin.command: "pcs property set no-quorum-policy=ignore"
+
+    - name: Create floating vip
+      ansible.builtin.command: "pcs resource create virtual_ip ocf:heartbeat:IPaddr2 ip={{ vip }} cidr_netmask=32 op monitor interval=30s"
+
+    - name: Create nginx checker
+      ansible.builtin.command: 'pcs resource create webserver ocf:heartbeat:nginx configfile=/etc/nginx/nginx.conf op monitor timeout="5s" interval="5s"'
+
+    - name: Set colocation constrains
+      ansible.builtin.command: "pcs constraint colocation add webserver virtual_ip INFINITY"
+
+    - name: Set order constrains
+      ansible.builtin.command: "pcs constraint order virtual_ip then webserver"
+
+    - name: Stop cluster
+      ansible.builtin.command: "pcs cluster stop --all"
+
+    - name: Resume cluster
+      ansible.builtin.command: "pcs cluster start --all"        

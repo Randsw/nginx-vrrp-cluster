@@ -1,0 +1,15 @@
+---
+- name: Install VRRP Packages
+  ansible.builtin.package:
+    name: "{{ item }}"
+    state: present
+  loop:
+    - "{{ vrrp_package }}"
+
+- name: Install Nginx
+  ansible.builtin.package:
+    name: nginx
+    state: present
+
+- name: Customize Nginx
+  command: echo '<h1>{{ hostvars[inventory_hostname] }} - vrrp-test</h1>' > /usr/share/nginx/html/index.html

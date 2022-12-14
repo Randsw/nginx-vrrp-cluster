@@ -1,0 +1,5 @@
+---
+vrrp_package:
+  - corosync 
+  - pacemaker 
+  - pcs

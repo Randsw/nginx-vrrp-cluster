@@ -1,0 +1,5 @@
+---
+- name: Install install VRRP packages and nginx
+  ansible.builtin.include_tasks: install.yml
+- name: Configure VRRP
+  ansible.builtin.include_tasks: configure.yml
