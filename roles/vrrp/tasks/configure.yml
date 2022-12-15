@@ -1,10 +1,11 @@
 ---
-- name: update pacemaker user password
+- name: Update pacemaker user password
   ansible.builtin.user:
     name: hacluster
     password: "{{ pacemaker_password | password_hash('sha512') }}"
 
 - name: Set up Cluster
+  when: hostvars[inventoty_hostname] == 'vrrp-1'
   block:
     - name: Authorize in servers
       ansible.builtin.command: "pcs cluster auth {{ groups['vrrp-cluster'] | join(' ') }} -u hacluster -p {{ pacemaker_password }}"
@@ -40,4 +41,4 @@
       ansible.builtin.command: "pcs cluster stop --all"
 
     - name: Resume cluster
-      ansible.builtin.command: "pcs cluster start --all"        
+      ansible.builtin.command: "pcs cluster start --all"

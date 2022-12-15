@@ -12,4 +12,4 @@
     state: present
 
 - name: Customize Nginx
-  command: echo '<h1>{{ hostvars[inventory_hostname] }} - vrrp-test</h1>' > /usr/share/nginx/html/index.html
+  ansible.builtin.command: echo '<h1>{{ hostvars[inventory_hostname] }} - vrrp-test</h1>' > /usr/share/nginx/html/index.html
