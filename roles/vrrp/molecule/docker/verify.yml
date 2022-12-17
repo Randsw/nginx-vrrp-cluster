@@ -8,15 +8,20 @@
   tasks:
   post_tasks:
 
+    - name: Pause for 1 minutes
+      ansible.builtin.pause:
+        minutes: 1
+
     - name: Check that a page returns a status 200 and register answer
       ansible.builtin.uri:
         url: http://{{ vip }}
         return_content: yes
       register: answer
 
-    - name: some debug
-      ansible.builtin.debug:
-        var: answer
+    - name: Check nginx answer return vrrp-test
+      ansible.builtin.assert:
+        that:
+          - "'vrrp-test' in answer.content"
 
     - name: Save cluster status
       ansible.builtin.command: pcs status
@@ -29,4 +34,4 @@
     - name: Check cluster is online
       ansible.builtin.assert:
         that:
-          - "'Online: [ vrrp-1 vrrp-2 vrrp-3 ]' in answer.content"
+          - "'Online: [ vrrp-1 vrrp-2 vrrp-3 ]' in pcs_status.stdout"

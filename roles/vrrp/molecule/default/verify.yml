@@ -4,10 +4,13 @@
   become: true
   vars:
     vip: 192.168.56.200
-    pacemaker_password: pacemaker
 
   tasks:
   post_tasks:
+
+    - name: Pause for 1 minutes
+      ansible.builtin.pause:
+        minutes: 1
 
     - name: Check that a page returns a status 200 and register answer
       ansible.builtin.uri:

@@ -7,6 +7,7 @@
     pacemaker_password: pacemaker
 
   pre_tasks:
+
     - name: Fill /etc/hosts with hosts entry
       ansible.builtin.lineinfile:
         path: /etc/hosts
