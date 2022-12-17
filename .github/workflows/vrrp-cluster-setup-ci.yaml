@@ -22,7 +22,10 @@ jobs:
       - name: Install test dependencies
         run: pip3 install molecule[docker] yamllint ansible-lint ansible testinfra pytest
 
-      - name: Run Molecule test on mongo_install role
+      - name: Check molecule version
+        run: molecule --version
+
+      - name: Run Molecule test on vrrp role
         working-directory: ./roles/vrrp
         run: molecule test -s docker
         env:
