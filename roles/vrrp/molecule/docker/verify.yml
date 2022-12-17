@@ -1,0 +1,32 @@
+---
+- name: Verify
+  hosts: all
+  become: true
+  vars:
+    vip: 172.21.0.200
+
+  tasks:
+  post_tasks:
+
+    - name: Check that a page returns a status 200 and register answer
+      ansible.builtin.uri:
+        url: http://{{ vip }}
+        return_content: yes
+      register: answer
+
+    - name: some debug
+      ansible.builtin.debug:
+        var: answer
+
+    - name: Save cluster status
+      ansible.builtin.command: pcs status
+      register: pcs_status
+
+    - name: some debug 2
+      ansible.builtin.debug:
+        var: pcs_status
+
+    - name: Check cluster is online
+      ansible.builtin.assert:
+        that:
+          - "'Online: [ vrrp-1 vrrp-2 vrrp-3 ]' in answer.content"

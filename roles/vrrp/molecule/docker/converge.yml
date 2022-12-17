@@ -1,0 +1,23 @@
+---
+- name: Converge
+  hosts: all
+  become: true
+  vars:
+    vip: 172.21.0.2
+    pacemaker_password: pacemaker
+    molecule_test: true
+
+  pre_tasks:
+    - name: Install pip
+      ansible.builtin.package:
+        name: "python3-pip"
+        state: present
+
+    - name: Install pyOpenSSL
+      ansible.builtin.pip:
+        name: "{{ item }}"
+      loop:
+        - pyOpenSSL
+
+  roles:
+    - {role: vrrp}

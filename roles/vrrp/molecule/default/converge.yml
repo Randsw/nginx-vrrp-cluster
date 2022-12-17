@@ -1,0 +1,22 @@
+---
+- name: Converge
+  hosts: all
+  become: true
+  vars:
+    vip: 192.168.56.200
+    pacemaker_password: pacemaker
+
+  pre_tasks:
+    - name: Fill /etc/hosts with hosts entry
+      ansible.builtin.lineinfile:
+        path: /etc/hosts
+        line: "{{ hostvars[item]['ip_adr'] }}  {{ item }}"
+      loop: "{{ groups['vrrp-cluster'] }}"
+
+    - name: Test hosts
+      ansible.builtin.debug:
+        msg: "{{ hostvars[item]['ip_adr'] }}  {{ item }}"
+      loop: "{{ groups['vrrp-cluster'] }}"
+
+  roles:
+    - {role: vrrp}

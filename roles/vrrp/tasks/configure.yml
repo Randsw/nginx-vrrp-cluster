@@ -3,42 +3,62 @@
   ansible.builtin.user:
     name: hacluster
     password: "{{ pacemaker_password | password_hash('sha512') }}"
+  changed_when: false
+
+- name: Remove line with 127.0.2.1 in /etc/hosts
+  ansible.builtin.lineinfile:
+    path: /etc/hosts
+    state: absent
+    regexp: '^127.0.2.1'
+  when: molecule_test is undefined
 
 - name: Set up Cluster
-  when: hostvars[inventoty_hostname] == 'vrrp-1'
+  when: hostvars[inventory_hostname]['ansible_fqdn'] == 'vrrp-1'
   block:
+    - name: Authorize in cluster
+      ansible.builtin.command: "pcs cluster auth -u hacluster -p {{ pacemaker_password }}"
+      changed_when: false
+
     - name: Authorize in servers
-      ansible.builtin.command: "pcs cluster auth {{ groups['vrrp-cluster'] | join(' ') }} -u hacluster -p {{ pacemaker_password }}"
+      ansible.builtin.command: "pcs host auth {{ groups['vrrp-cluster'] | join(' ') }} -u hacluster -p {{ pacemaker_password }}"
+      changed_when: false
 
     - name: Create cluster
-      ansible.builtin.command: "pcs cluster setup --name vrrp_cluster {{ groups['vrrp-cluster'] | join(' ') }}"
-
-    - name: Start cluster
-      ansible.builtin.command: "pcs cluster start --all"
+      ansible.builtin.command: "pcs cluster setup vrrp_cluster --start {{ groups['vrrp-cluster'] | join(' ') }} --force"
+      changed_when: false
 
     - name: Enable cluster
-      ansible.builtin.command: "pcs cluster start --all"
+      ansible.builtin.command: "pcs cluster enable --all"
+      changed_when: false
 
     - name: Disable STONITH
       ansible.builtin.command: "pcs property set stonith-enabled=false"
+      changed_when: false
 
     - name: Set ignore Quorum
       ansible.builtin.command: "pcs property set no-quorum-policy=ignore"
+      changed_when: false
 
     - name: Create floating vip
-      ansible.builtin.command: "pcs resource create virtual_ip ocf:heartbeat:IPaddr2 ip={{ vip }} cidr_netmask=32 op monitor interval=30s"
+      ansible.builtin.command: "pcs resource create virtual_ip ocf:heartbeat:IPaddr2 ip={{ vip }} cidr_netmask=32 op monitor interval=10s"
+      changed_when: false
 
     - name: Create nginx checker
       ansible.builtin.command: 'pcs resource create webserver ocf:heartbeat:nginx configfile=/etc/nginx/nginx.conf op monitor timeout="5s" interval="5s"'
+      changed_when: false
 
     - name: Set colocation constrains
-      ansible.builtin.command: "pcs constraint colocation add webserver virtual_ip INFINITY"
+      ansible.builtin.command: "pcs constraint colocation add virtual_ip with webserver INFINITY"
+      changed_when: false
 
     - name: Set order constrains
-      ansible.builtin.command: "pcs constraint order virtual_ip then webserver"
+      ansible.builtin.command: "pcs constraint order webserver then virtual_ip"
+      changed_when: false
 
     - name: Stop cluster
       ansible.builtin.command: "pcs cluster stop --all"
+      changed_when: false
 
     - name: Resume cluster
       ansible.builtin.command: "pcs cluster start --all"
+      changed_when: false

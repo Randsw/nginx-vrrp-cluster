@@ -1,0 +1,74 @@
+---
+dependency:
+  name: galaxy
+driver:
+  name: vagrant
+  provider:
+    name: virtualbox
+lint: |
+  set -e
+  yamllint .
+  ansible-lint .
+platforms:
+  - name: vrrp-1
+    box: geerlingguy/ubuntu2004
+    memory: 512
+    interfaces:
+      - auto_config: true
+        network_name: private_network
+        ip: 192.168.56.101
+        type: static
+    options:
+      append_platform_to_hostname: no
+    cpus: 1
+    groups:
+      - vrrp-cluster
+  - name: vrrp-2
+    box: geerlingguy/ubuntu2004
+    interfaces:
+      - auto_config: true
+        network_name: private_network
+        ip: 192.168.56.102
+        type: static
+    options:
+      append_platform_to_hostname: no
+    memory: 512
+    cpus: 1
+    groups:
+      - vrrp-cluster
+  - name: vrrp-3
+    box: geerlingguy/ubuntu2004
+    interfaces:
+      - auto_config: true
+        network_name: private_network
+        ip: 192.168.56.103
+        type: static
+    options:
+      append_platform_to_hostname: no
+    memory: 512
+    cpus: 1
+    groups:
+      - vrrp-cluster
+provisioner:
+  name: ansible
+  config_options:
+    defaults:
+      pipelining: true
+  env:
+    ANSIBLE_VERBOSITY: 1
+  log: true
+  playbooks:
+    converge: ${MOLECULE_PLAYBOOK:-converge.yml}
+  inventory:
+    host_vars:
+      vrrp-1:
+        ansible_python_interpreter: auto_silent
+        ip_adr: 192.168.56.101
+      vrrp-2:
+        ansible_python_interpreter: auto_silent
+        ip_adr: 192.168.56.102
+      vrrp-3:
+        ansible_python_interpreter: auto_silent
+        ip_adr: 192.168.56.103
+verifier:
+  name: ansible

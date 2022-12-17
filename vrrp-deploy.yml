@@ -56,7 +56,7 @@
     - name: Fill /etc/hosts with hosts entry
       lineinfile:
         path: /etc/hosts
-        line: "{{ hostvars[item]['ansible_host'] }}  {{ item }}"
+        line: "{{ hostvars[item]['ansible_eth1']['ipv4']['address'] }}  {{ item }}"
       loop: "{{ groups['all'] }}"
 
   roles:
