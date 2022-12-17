@@ -7,6 +7,16 @@
   loop:
     - "{{ vrrp_package }}"
 
+- name: Start and enable VRRP Packages
+  ansible.builtin.systemd:
+    state: started
+    enabled: true
+    name: "{{ item }}"
+  loop:
+    - corosync
+    - pacemaker
+    - pcsd
+
 - name: Install Nginx
   ansible.builtin.package:
     name: nginx
