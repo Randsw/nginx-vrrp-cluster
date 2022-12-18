@@ -2,11 +2,17 @@
 - name: Verify
   hosts: all
   become: true
-  vars:
-    vip: 172.21.0.200
 
   tasks:
   post_tasks:
+
+    - name: Register containers ip
+      ansible.builtin.set_fact:
+        container_ip: "{{ hostvars[inventory_hostname]['ansible_default_ipv4']['address'] }}"
+
+    - name: Register vip
+      ansible.builtin.set_fact:
+        vip: "{{ container_ip.split('.')[:3] | join('.') ~ '.200' }}"
 
     - name: Pause for 1 minutes
       ansible.builtin.pause:

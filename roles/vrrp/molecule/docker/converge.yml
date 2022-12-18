@@ -4,12 +4,19 @@
   become: true
   gather_facts: yes
   vars:
-    vip: 172.21.0.2
     pacemaker_password: pacemaker
     molecule_test: true
     ansible_python_interpreter: /usr/bin/python3
 
   pre_tasks:
+    - name: Register containers ip
+      ansible.builtin.set_fact:
+        container_ip: "{{ hostvars[inventory_hostname]['ansible_default_ipv4']['address'] }}"
+
+    - name: Register vip
+      ansible.builtin.set_fact:
+        vip: "{{ container_ip.split('.')[:3] | join('.') ~ '.200' }}"
+
     - name: Install pip
       ansible.builtin.package:
         name: "python3-pip"
